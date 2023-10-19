@@ -1,0 +1,131 @@
+##############################################################
+# Copyright 2023 Lawrence Livermore National Security, LLC
+# (c.f. AUTHORS, NOTICE.LLNS, COPYING)
+#
+# This file is part of the Flux resource manager framework.
+# For details, see https://github.com/flux-framework.
+#
+# SPDX-License-Identifier: LGPL-3.0
+##############################################################
+
+stages: 
+  - core:build
+  - core:test
+
+## Reusable Scripts
+.standard-variables:
+    variables:
+        LLNL_SERVICE_USER: fluxci
+        PYTHON: "/usr/bin/python3"
+        HWLOC_COMPONENTS: x86
+        debug: t
+        FLUX_TESTS_LOGFILE: t
+        FF_ENABLE_JOB_CLEANUP: "false"
+        CUSTOM_CI_BUILDS_DIR: "/usr/WS1/$$USER/gitlab-runner-builds-dir"
+        # Note: the above will not work with /usr/workspace, you must specify WS1 or WS2
+
+.build-core:
+    extends: .standard-variables
+    script:
+        - git clone https://github.com/flux-framework/flux-core
+        - cd flux-core
+        - lstopo --of xml >$(hostname).xml
+        - export FLUX_HWLOC_XMLFILE=$(pwd)/$(hostname).xml
+        - ./autogen.sh
+        - ./configure
+        - make -j 32
+        - export PATH=$(pwd)/src/cmd:$PATH
+    artifacts:
+        paths:
+            - flux-core/
+        expire_in: 7 days
+
+.test-core:
+    extends: .standard-variables
+    script:
+        - cd flux-core/
+        - make -j 32 check
+        - ./t/aggregate-checks.sh
+
+
+## Machine Configurations
+.corona:
+    tags:
+        - corona
+        - batch
+    variables:
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 --setattr=system.bank=lc"
+
+.poodle:
+    tags:
+        - poodle
+        - batch
+    variables:
+        LLNL_SLURM_SCHEDULER_PARAMETERS: "--exclusive -p pdebug -N 1"
+
+.tioga:
+    tags:
+        - tioga
+        - batch
+    variables:
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1"
+
+.quartz:
+    tags:
+        - quartz
+        - batch
+    variables: 
+        LLNL_SLURM_SCHEDULER_PARAMETERS: "-p pdebug -N 1"
+
+## Job Specifications
+corona-build:
+    extends: 
+        - .build-core
+        - .corona
+    stage: core:build
+
+corona-test:
+    extends: 
+        - .test-core
+        - .corona
+    needs: [corona-build]
+    stage: core:test
+
+poodle-build:
+    extends: 
+        - .build-core
+        - .poodle
+    stage: core:build
+
+poodle-test:
+    extends: 
+        - .test-core
+        - .poodle
+    needs: [poodle-build]
+    stage: core:test
+
+tioga-build:
+    extends: 
+        - .build-core
+        - .tioga
+    stage: core:build
+
+tioga-test:
+    extends: 
+        - .test-core
+        - .tioga
+    needs: [tioga-build]
+    stage: core:test
+
+quartz-build:
+    extends: 
+        - .build-core
+        - .quartz
+    stage: core:build
+
+quartz-test:
+    extends: 
+        - .test-core
+        - .quartz
+    needs: [quartz-build]
+    stage: core:test
