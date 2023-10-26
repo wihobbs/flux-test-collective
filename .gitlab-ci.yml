@@ -1,0 +1,98 @@
+##############################################################
+# Copyright 2023 Lawrence Livermore National Security, LLC
+# (c.f. AUTHORS, NOTICE.LLNS, COPYING)
+#
+# This file is part of the Flux resource manager framework.
+# For details, see https://github.com/flux-framework.
+#
+# SPDX-License-Identifier: LGPL-3.0
+##############################################################
+
+stages: 
+  - test
+
+## YAML Anchors
+.build-core: &build-core
+    - git clone https://github.com/flux-framework/flux-core
+    - cd flux-core
+    - export FLUX_BUILD_DIR=$(pwd)
+    - lstopo --of xml >$(hostname).xml
+    - export FLUX_HWLOC_XMLFILE=$(pwd)/$(hostname).xml
+    - ./autogen.sh
+    - ./configure
+    - make -j 32
+    - cd ..
+
+## Reusable Scripts
+.standard-variables:
+    variables:
+        LLNL_SERVICE_USER: fluxci
+        PYTHON: "/usr/bin/python3"
+        HWLOC_COMPONENTS: x86
+        debug: t
+        FLUX_TESTS_LOGFILE: t
+        FF_ENABLE_JOB_CLEANUP: "false"
+        CUSTOM_CI_BUILDS_DIR: "/usr/WS1/$$USER/gitlab-runner-builds-dir"
+        # Note: the above will not work with /usr/workspace, you must specify WS1 or WS2
+
+.test-core:
+    extends: .standard-variables
+    script:
+        - *build-core
+        - cd $FLUX_BUILD_DIR
+        - make -j 32 check
+
+## Machine Configurations
+.corona:
+    tags:
+        - corona
+        - batch
+    variables:
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 --setattr=system.bank=lc"
+
+.poodle:
+    tags:
+        - poodle
+        - batch
+    variables:
+        LLNL_SLURM_SCHEDULER_PARAMETERS: "--exclusive -p pdebug -N 1"
+
+.tioga:
+    tags:
+        - tioga
+        - batch
+    variables:
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1"
+
+.quartz:
+    tags:
+        - quartz
+        - batch
+    variables: 
+        LLNL_SLURM_SCHEDULER_PARAMETERS: "-p pdebug -N 1"
+
+## Job Specifications
+corona-core-test:
+    extends: 
+        - .test-core
+        - .corona
+    stage: test
+
+poodle-core-test:
+    extends: 
+        - .test-core
+        - .poodle
+    stage: test
+
+tioga-core-test:
+    extends: 
+        - .test-core
+        - .tioga
+    stage: test
+
+quartz-core-test:
+    extends: 
+        - .test-core
+        - .quartz
+    stage: test
+
