@@ -11,6 +11,9 @@
 stages: 
   - test
 
+default:
+    retry: 1
+
 ## YAML Anchors
 .build-core: &build-core
     - git clone https://github.com/flux-framework/flux-core
