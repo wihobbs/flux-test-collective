@@ -1,0 +1,21 @@
+##############################################################
+# Copyright 2023 Lawrence Livermore National Security, LLC
+# (c.f. AUTHORS, NOTICE.LLNS, COPYING)
+#
+# This file is part of the Flux resource manager framework.
+# For details, see https://github.com/flux-framework.
+#
+# SPDX-License-Identifier: LGPL-3.0
+##############################################################
+
+.build-core:
+  script:
+    - git clone https://github.com/flux-framework/flux-core
+    - cd flux-core
+    - export FLUX_BUILD_DIR=$(pwd)
+    - lstopo --of xml >$(hostname).xml
+    - export FLUX_HWLOC_XMLFILE=$(pwd)/$(hostname).xml
+    - ./autogen.sh
+    - ./configure
+    - make -j 32
+    - cd ..

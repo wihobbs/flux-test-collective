@@ -1,0 +1,42 @@
+##############################################################
+# Copyright 2023 Lawrence Livermore National Security, LLC
+# (c.f. AUTHORS, NOTICE.LLNS, COPYING)
+#
+# This file is part of the Flux resource manager framework.
+# For details, see https://github.com/flux-framework.
+#
+# SPDX-License-Identifier: LGPL-3.0
+##############################################################
+
+## Machine Configurations
+.corona:
+    tags:
+        - corona
+        - batch
+    variables:
+        HWLOC_COMPONENTS: "x86"
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 --setattr=system.bank=lc"
+
+.poodle:
+    tags:
+        - poodle
+        - batch
+    variables:
+        HWLOC_COMPONENTS: "x86"
+        LLNL_SLURM_SCHEDULER_PARAMETERS: "--exclusive -p pdebug -N 1"
+
+.tioga:
+    tags:
+        - tioga
+        - batch
+    variables:
+        HWLOC_COMPONENTS: "x86"
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1"
+
+.quartz:
+    tags:
+        - quartz
+        - batch
+    variables: 
+        HWLOC_COMPONENTS: "x86"
+        LLNL_SLURM_SCHEDULER_PARAMETERS: "-p pdebug -N 1"
