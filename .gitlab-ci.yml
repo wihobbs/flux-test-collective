@@ -11,6 +11,7 @@
 include:
   - local: '.gitlab/builds.gitlab-ci.yml'
   - local: '.gitlab/machines.gitlab-ci.yml'
+  - local: '.gitlab/mpi-test.gitlab-ci.yml'
 
 stages: 
   - test
@@ -36,6 +37,14 @@ default:
         - cd $FLUX_BUILD_DIR
         - make -j 32 check
 
+.test-core-mpi-corona:
+    extends: .lc-variables
+    variables: 
+        PYTHON: "/usr/bin/python3"
+    script:
+        - !reference ['.build-core', 'script']
+        - !reference ['.mpi-test-corona', 'script']
+
 ## Job Specifications
 corona-core-test:
     extends: 
@@ -59,4 +68,12 @@ quartz-core-test:
     extends: 
         - .test-core
         - .quartz
+    stage: test
+
+corona-mpi-test:
+    extends:
+        - .test-core-mpi-corona
+        - .corona
+    variables:
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "-N2 -n2"
     stage: test
