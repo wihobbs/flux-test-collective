@@ -35,6 +35,7 @@ default:
         - !reference ['.build-core', 'script']
         - cd $FLUX_BUILD_DIR
         - make -j 32 check
+        - $FLUX_BUILD_DIR/src/test/checks-annotate.sh
 
 ## Job Specifications
 corona-core-test:
