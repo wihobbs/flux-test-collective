@@ -78,5 +78,5 @@ corona-mpi-test:
         - .test-core-mpi
         - .corona
     variables:
-        LLNL_FLUX_SCHEDULER_PARAMETERS: "-N2"
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "-N 2 -q pdebug"
     stage: test
