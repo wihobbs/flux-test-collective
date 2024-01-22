@@ -38,6 +38,25 @@ default:
         - cd ${CORE_BUILD_DIR}
         - make -j $(nproc) check
 
+.test-pmix:
+    extends: .lc-variables
+    variables:
+        PYTHON: "/usr/bin/python3"
+        debug: t
+        FLUX_TESTS_LOGFILE: t
+    script:
+        - export FTC_DIRECTORY=$(pwd)
+        - !reference ['.build-core', 'script']
+        - export PKG_CONFIG_PATH=${CORE_INSTALL_PREFIX}/lib/pkgconfig:$(pkg-config --variable pc_path pkg-config)
+        - module load openmpi
+        - export PKG_CONFIG_PATH=$(dirname $(which mpicc))/../lib/pkgconfig:${PKG_CONFIG_PATH} 
+        - cd ${FTC_DIRECTORY}
+        - git clone https://github.com/flux-framework/flux-pmix
+        - cd flux-pmix
+        - ./autogen.sh
+        - ./configure
+        - make -j $(nproc) check
+
 .test-core-mpi:
     extends: .lc-variables
     variables: 
@@ -71,6 +90,12 @@ quartz-core-test:
     extends: 
         - .test-core
         - .quartz
+    stage: test
+
+corona-pmix-test:
+    extends:
+        - .test-pmix
+        - .corona
     stage: test
 
 corona-mpi-test:
