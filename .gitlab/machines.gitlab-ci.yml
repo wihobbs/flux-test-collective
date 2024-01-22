@@ -31,7 +31,7 @@
         - batch
     variables:
         HWLOC_COMPONENTS: "x86"
-        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 -q pdebug"
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 -q pci"
 
 .quartz:
     tags:
