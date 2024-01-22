@@ -35,8 +35,8 @@ default:
         - lstopo --of xml >$(hostname).xml
         - export FLUX_HWLOC_XMLFILE=$(pwd)/$(hostname).xml
         - !reference ['.build-core', 'script']
-        - cd $FLUX_BUILD_DIR
-        - make -j 32 check
+        - cd ${CORE_BUILD_DIR}
+        - make -j $(nproc) check
 
 .test-core-mpi:
     extends: .lc-variables
@@ -46,7 +46,7 @@ default:
         - export MPI_TESTS_DIRECTORY=$(pwd)/mpi
         - export FTC_DIRECTORY=$(pwd)
         - !reference ['.build-core', 'script']
-        - flux run -N2 $FLUX_BUILD_DIR/src/cmd/flux start $MPI_TESTS_DIRECTORY/outer_script.sh
+        - flux run -N2 $CORE_BUILD_DIR/src/cmd/flux start $MPI_TESTS_DIRECTORY/outer_script.sh
 
 ## Job Specifications
 corona-core-test:
