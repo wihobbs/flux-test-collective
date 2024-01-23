@@ -78,6 +78,23 @@ default:
         - make -j $(nproc) check
         - make -j $(nproc) install
 
+.test-sched:
+    extends: .lc-variables
+    variables:
+        PYTHON: "/usr/bin/python3"
+        debug: t
+        FLUX_TESTS_LOGFILE: t
+    script:
+        - cd ${CI_DIRECTORY}
+        - export PKG_CONFIG_PATH=${CORE_INSTALL_PREFIX}/lib/pkgconfig:$(pkg-config --variable pc_path pkg-config)
+        - git clone https://github.com/flux-framework/flux-sched
+        - cd flux-sched
+        - module load gcc 
+        - ${CORE_INSTALL_PREFIX}/bin/flux ./configure
+        - make -j $(nproc)
+        - make -j $(nproc) install
+        - ctest -j 16 -E "t5000-valgrind.t"
+
 .test-core-mpi:
     extends: .lc-variables
     ## this will need coral2 XOR pmix depending on system (hopefully both eventually)
@@ -98,6 +115,13 @@ corona-core-test:
     needs: ["corona-core-build"]
     extends: 
         - .test-core
+        - .corona
+    stage: test
+
+corona-sched-test:
+    needs: ["corona-core-build"]
+    extends:
+        - .test-sched
         - .corona
     stage: test
 
@@ -137,6 +161,13 @@ tioga-coral2-test:
     needs: ["tioga-core-build"]
     extends:
         - .test-coral2
+        - .tioga
+    stage: test
+
+tioga-sched-test:
+    needs: ["tioga-core-build"]
+    extends:
+        - .test-sched
         - .tioga
     stage: test
 
