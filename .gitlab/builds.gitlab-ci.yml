@@ -12,8 +12,13 @@
   script:
     - git clone https://github.com/flux-framework/flux-core
     - cd flux-core
-    - export FLUX_BUILD_DIR=$(pwd)
     - ./autogen.sh
-    - ./configure
-    - make -j 32
-    - cd ..
+    - mkdir build
+    - cd build
+    - mkdir install
+    - ../configure --prefix=$(pwd)/install
+    - make -j $(nproc)
+    - make -j $(nproc) install
+    - export CORE_BUILD_DIR=$(pwd)
+    - export CORE_INSTALL_PREFIX=$(pwd)/install
+    
