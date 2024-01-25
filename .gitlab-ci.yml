@@ -12,7 +12,8 @@ include:
   - local: '.gitlab/builds.gitlab-ci.yml'
   - local: '.gitlab/machines.gitlab-ci.yml'
 
-stages: 
+stages:
+  - build
   - test
 
 default:
@@ -25,6 +26,7 @@ default:
         CUSTOM_CI_BUILDS_DIR: "/usr/WS1/$$USER/gitlab-runner-builds-dir"
         # Note: the above will not work with /usr/workspace, you must specify WS1 or WS2
 
+## Job Specifications
 .test-core:
     extends: .lc-variables
     variables:
@@ -32,11 +34,15 @@ default:
         debug: t
         FLUX_TESTS_LOGFILE: t
     script:
+        - echo $CI_DIRECTORY
+        - cd ${CORE_BUILD_DIR}
         - lstopo --of xml >$(hostname).xml
         - export FLUX_HWLOC_XMLFILE=$(pwd)/$(hostname).xml
-        - !reference ['.build-core', 'script']
-        - cd ${CORE_BUILD_DIR}
         - make -j $(nproc) check
+        ## The following is teardown to make sure the xml file doesn't get reused
+        ## but maybe it's unnecessary. Subsequent tests will run under new shells...
+        - rm ${FLUX_HWLOC_XMLFILE}
+        - unset FLUX_HWLOC_XMLFILE
 
 .test-pmix:
     extends: .lc-variables
@@ -45,60 +51,88 @@ default:
         debug: t
         FLUX_TESTS_LOGFILE: t
     script:
-        - export FTC_DIRECTORY=$(pwd)
-        - !reference ['.build-core', 'script']
         - export PKG_CONFIG_PATH=${CORE_INSTALL_PREFIX}/lib/pkgconfig:$(pkg-config --variable pc_path pkg-config)
         - module load openmpi
         - export PKG_CONFIG_PATH=$(dirname $(which mpicc))/../lib/pkgconfig:${PKG_CONFIG_PATH} 
-        - cd ${FTC_DIRECTORY}
+        - cd ${CI_DIRECTORY}
         - git clone https://github.com/flux-framework/flux-pmix
         - cd flux-pmix
         - ./autogen.sh
-        - ./configure
+        - ./configure --prefix=${CORE_INSTALL_PREFIX}
         - make -j $(nproc) check
+        - make -j $(nproc) install
 
 .test-core-mpi:
     extends: .lc-variables
-    variables: 
+    ## this will need coral2 XOR pmix depending on system (hopefully both eventually)
+    variables:
         PYTHON: "/usr/bin/python3"
     script:
         - export MPI_TESTS_DIRECTORY=$(pwd)/mpi
         - export FTC_DIRECTORY=$(pwd)
-        - !reference ['.build-core', 'script']
         - flux run -N2 $CORE_BUILD_DIR/src/cmd/flux start $MPI_TESTS_DIRECTORY/outer_script.sh
 
-## Job Specifications
+corona-core-build:
+    extends: 
+        - .build-core
+        - .corona
+    stage: build
+
 corona-core-test:
+    needs: ["corona-core-build"]
     extends: 
         - .test-core
         - .corona
     stage: test
 
+poodle-core-build:
+    extends: 
+        - .build-core
+        - .poodle
+    stage: build
+
 poodle-core-test:
+    needs: ["poodle-core-build"]
     extends: 
         - .test-core
         - .poodle
     stage: test
 
+tioga-core-build:
+    extends: 
+        - .build-core
+        - .tioga
+    stage: build
+
 tioga-core-test:
+    needs: ["tioga-core-build"]
     extends: 
         - .test-core
         - .tioga
     stage: test
 
+quartz-core-build:
+    extends: 
+        - .build-core
+        - .quartz
+    stage: build
+
 quartz-core-test:
+    needs: ["quartz-core-build"]
     extends: 
         - .test-core
         - .quartz
     stage: test
 
 corona-pmix-test:
+    needs: ["corona-core-build"]
     extends:
         - .test-pmix
         - .corona
     stage: test
 
 corona-mpi-test:
+    needs: ["corona-core-build", "corona-pmix-test"]
     extends:
         - .test-core-mpi
         - .corona
