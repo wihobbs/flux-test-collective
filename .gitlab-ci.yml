@@ -10,95 +10,77 @@
 
 include:
   - local: '.gitlab/builds.gitlab-ci.yml'
-  - local: '.gitlab/machines.gitlab-ci.yml'
+  - local: '.gitlab/tests.gitlab-ci.yml'
 
-stages: 
+stages:
+  - build
   - test
 
 default:
     retry: 1
 
-.lc-variables:
-    variables:
-        LLNL_SERVICE_USER: fluxci
-        FF_ENABLE_JOB_CLEANUP: "false"
-        CUSTOM_CI_BUILDS_DIR: "/usr/WS1/$$USER/gitlab-runner-builds-dir"
-        # Note: the above will not work with /usr/workspace, you must specify WS1 or WS2
-
-.test-core:
-    extends: .lc-variables
-    variables:
-        PYTHON: "/usr/bin/python3"
-        debug: t
-        FLUX_TESTS_LOGFILE: t
-    script:
-        - lstopo --of xml >$(hostname).xml
-        - export FLUX_HWLOC_XMLFILE=$(pwd)/$(hostname).xml
-        - !reference ['.build-core', 'script']
-        - cd ${CORE_BUILD_DIR}
-        - make -j $(nproc) check
-
-.test-pmix:
-    extends: .lc-variables
-    variables:
-        PYTHON: "/usr/bin/python3"
-        debug: t
-        FLUX_TESTS_LOGFILE: t
-    script:
-        - export FTC_DIRECTORY=$(pwd)
-        - !reference ['.build-core', 'script']
-        - export PKG_CONFIG_PATH=${CORE_INSTALL_PREFIX}/lib/pkgconfig:$(pkg-config --variable pc_path pkg-config)
-        - module load openmpi
-        - export PKG_CONFIG_PATH=$(dirname $(which mpicc))/../lib/pkgconfig:${PKG_CONFIG_PATH} 
-        - cd ${FTC_DIRECTORY}
-        - git clone https://github.com/flux-framework/flux-pmix
-        - cd flux-pmix
-        - ./autogen.sh
-        - ./configure
-        - make -j $(nproc) check
-
-.test-core-mpi:
-    extends: .lc-variables
-    variables: 
-        PYTHON: "/usr/bin/python3"
-    script:
-        - export MPI_TESTS_DIRECTORY=$(pwd)/mpi
-        - export FTC_DIRECTORY=$(pwd)
-        - !reference ['.build-core', 'script']
-        - flux run -N2 $CORE_BUILD_DIR/src/cmd/flux start $MPI_TESTS_DIRECTORY/outer_script.sh
-
 ## Job Specifications
+corona-core-build:
+    extends: 
+        - .build-core
+        - .corona
+    stage: build
+
 corona-core-test:
+    needs: ["corona-core-build"]
     extends: 
         - .test-core
         - .corona
     stage: test
 
+poodle-core-build:
+    extends: 
+        - .build-core
+        - .poodle
+    stage: build
+
 poodle-core-test:
+    needs: ["poodle-core-build"]
     extends: 
         - .test-core
         - .poodle
     stage: test
 
+tioga-core-build:
+    extends: 
+        - .build-core
+        - .tioga
+    stage: build
+
 tioga-core-test:
+    needs: ["tioga-core-build"]
     extends: 
         - .test-core
         - .tioga
     stage: test
 
+quartz-core-build:
+    extends: 
+        - .build-core
+        - .quartz
+    stage: build
+
 quartz-core-test:
+    needs: ["quartz-core-build"]
     extends: 
         - .test-core
         - .quartz
     stage: test
 
 corona-pmix-test:
+    needs: ["corona-core-build"]
     extends:
         - .test-pmix
         - .corona
     stage: test
 
 corona-mpi-test:
+    needs: ["corona-core-build", "corona-pmix-test"]
     extends:
         - .test-core-mpi
         - .corona

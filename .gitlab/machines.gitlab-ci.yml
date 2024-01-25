@@ -8,6 +8,15 @@
 # SPDX-License-Identifier: LGPL-3.0
 ##############################################################
 
+## General LC Variables used by most or all tests/machines
+.lc-variables:
+    variables:
+        LLNL_SERVICE_USER: fluxci
+        FF_ENABLE_JOB_CLEANUP: "false"
+        CUSTOM_CI_BUILDS_DIR: "/usr/WS1/$$USER/gitlab-runner-builds-dir"
+        PYTHON: "/usr/bin/python3"
+        # Note: the above will not work with /usr/workspace, you must specify WS1 or WS2
+
 ## Machine Configurations
 .corona:
     tags:

@@ -1,0 +1,38 @@
+##############################################################
+# Copyright 2024 Lawrence Livermore National Security, LLC
+# (c.f. AUTHORS, NOTICE.LLNS, COPYING)
+#
+# This file is part of the Flux resource manager framework.
+# For details, see https://github.com/flux-framework.
+#
+# SPDX-License-Identifier: LGPL-3.0
+##############################################################
+
+include:
+  - local: '.gitlab/machines.gitlab-ci.yml'
+
+.test-core:
+    extends: .lc-variables
+    variables:
+        debug: t
+        FLUX_TESTS_LOGFILE: t
+    script:
+        - pwd
+        - echo $CI_DIRECTORY
+        - cd ${CORE_BUILD_DIR}
+        - pwd
+        - lstopo --of xml >$(hostname).xml
+        - export FLUX_HWLOC_XMLFILE=$(pwd)/$(hostname).xml
+        - make -j $(nproc) check
+        ## The following is teardown to make sure the xml file doesn't get reused
+        ## but maybe it's unnecessary. Subsequent tests will run under new shells...
+        - rm ${FLUX_HWLOC_XMLFILE}
+        - unset FLUX_HWLOC_XMLFILE
+
+.test-core-mpi:
+    extends: .lc-variables
+    ## this will need coral2 XOR pmix depending on system (hopefully both eventually)
+    script:
+        - export MPI_TESTS_DIRECTORY=$(pwd)/mpi
+        - export FTC_DIRECTORY=$(pwd)
+        - flux run -N2 $CORE_BUILD_DIR/src/cmd/flux start $MPI_TESTS_DIRECTORY/outer_script.sh
