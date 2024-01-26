@@ -9,16 +9,33 @@
 ##############################################################
 
 .build-core:
-  script:
-    - git clone https://github.com/flux-framework/flux-core
-    - cd flux-core
-    - ./autogen.sh
-    - mkdir build
-    - cd build
-    - mkdir install
-    - ../configure --prefix=$(pwd)/install
-    - make -j $(nproc)
-    - make -j $(nproc) install
-    - export CORE_BUILD_DIR=$(pwd)
-    - export CORE_INSTALL_PREFIX=$(pwd)/install
-    
+    extends: .lc-variables
+    variables:
+        PYTHON: "/usr/bin/python3"
+    script:
+        - test -n ${CI_PIPELINE_ID}
+        - export FTC_DIRECTORY=$(pwd)
+        - mkdir /usr/WS1/${USER}/cibuilds/${CI_PIPELINE_ID}_${LCSCHEDCLUSTER}
+        - export CI_DIRECTORY=/usr/WS1/${USER}/cibuilds/${CI_PIPELINE_ID}_${LCSCHEDCLUSTER}
+        - cd ${CI_DIRECTORY}
+        - git clone https://github.com/flux-framework/flux-core
+        - cd flux-core
+        - ./autogen.sh
+        - mkdir build
+        - cd build
+        - mkdir install
+        - ../configure --prefix=$(pwd)/install
+        - make -j $(nproc)
+        ## need to install to get pkgconfig files
+        - export CORE_BUILD_DIR=$(pwd)
+        - export CORE_INSTALL_PREFIX=$(pwd)/install
+        - cd $FTC_DIRECTORY
+        - echo "CI_DIRECTORY=${CI_DIRECTORY}" >> build.env
+        - echo "CORE_BUILD_DIR=${CORE_BUILD_DIR}" >> build.env
+        - echo "CORE_INSTALL_PREFIX=${CORE_INSTALL_PREFIX}" >> build.env
+    ## Save the exported directory names so later jobs can use the binaries that have already been built
+    ## send these dirnames to tests as a .env file
+    artifacts:
+        reports:
+            dotenv:
+                - build.env
