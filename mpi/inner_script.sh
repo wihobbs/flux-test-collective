@@ -22,7 +22,7 @@ cp -r $MPI_TESTS_DIRECTORY/* $FTC_DIRECTORY/$NAME
 cd $FTC_DIRECTORY/$NAME || die "Could not find $FTC_DIRECTORY/$NAME"
 echo "Running with $1 compiler and $2 MPI"
 flux bulksubmit -n1 --watch mpicc -o {} {}.c ::: $TESTS || die "Compilation failure in tests"
-flux bulksubmit --watch -N $BATCH_NNODES -n $BATCH_NCORES --output=kvs ./{} ::: $TESTS
+flux bulksubmit --watch -N $BATCH_NNODES -n $BATCH_NCORES $EXTRA_FLUX_SUBMIT_OPTIONS --output=kvs ./{} ::: $TESTS
 RC=$?
 rm -rf $FTC_DIRECTORY/$NAME
 exit $RC
