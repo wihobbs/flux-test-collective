@@ -70,7 +70,7 @@ default:
     script:
         - export MPI_TESTS_DIRECTORY=$(pwd)/mpi
         - export FTC_DIRECTORY=$(pwd)
-        - flux run -N2 $CORE_BUILD_DIR/src/cmd/flux start $MPI_TESTS_DIRECTORY/outer_script.sh
+        - flux run -N2 $CORE_INSTALL_PREFIX/bin/flux start $MPI_TESTS_DIRECTORY/outer_script.sh
 
 corona-core-build:
     extends: 

@@ -22,13 +22,14 @@
         - cd flux-core
         - ./autogen.sh
         - mkdir build
-        - cd build
         - mkdir install
-        - ../configure --prefix=$(pwd)/install
+        - cd build
+        - ../configure --prefix=${CI_DIRECTORY}/flux-core/install
         - make -j $(nproc)
         ## need to install to get pkgconfig files
+        - make -j $(nproc) install
         - export CORE_BUILD_DIR=$(pwd)
-        - export CORE_INSTALL_PREFIX=$(pwd)/install
+        - export CORE_INSTALL_PREFIX=${CI_DIRECTORY}/flux-core/install
         - cd $FTC_DIRECTORY
         - echo "CI_DIRECTORY=${CI_DIRECTORY}" >> build.env
         - echo "CORE_BUILD_DIR=${CORE_BUILD_DIR}" >> build.env
