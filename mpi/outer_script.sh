@@ -10,7 +10,8 @@ intel-classic
 
 corona_MPIS="
 mvapich2
-openmpi
+openmpi/4
+openmpi/5
 "
 
 export TESTS="hello
@@ -33,11 +34,11 @@ COMPILERS="${LCSCHEDCLUSTER}_COMPILERS"
 for mpi in ${!MPIS}; do
     for compiler in ${!COMPILERS}; do
         if [[ $mpi == "cray-mpich" ]]; then
-            EXTRA_FLUX_SUBMIT_OPTIONS="-o pmi=cray-pals" flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $mpi $compiler
-        elif [[ $mpi == "openmpi" ]]; then
-            EXTRA_FLUX_SUBMIT_OPTIONS="-o pmi=pmix" flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $mpi $compiler
+            EXTRA_FLUX_SUBMIT_OPTIONS="-o pmi=cray-pals" flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $compiler $mpi
+        elif [[ $mpi == "openmpi"* ]]; then
+            EXTRA_FLUX_SUBMIT_OPTIONS="-o pmi=pmix" flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $compiler $mpi
         else
-            flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $mpi $compiler
+            flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $compiler $mpi
         fi 
     done
 done
