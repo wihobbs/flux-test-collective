@@ -17,6 +17,7 @@ openmpi/5
 export TESTS="hello
 abort
 version
+vcpu
 "
 
 tioga_COMPILERS="
