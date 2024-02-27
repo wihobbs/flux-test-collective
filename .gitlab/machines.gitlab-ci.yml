@@ -14,7 +14,6 @@
         - corona
         - batch
     variables:
-        HWLOC_COMPONENTS: "x86"
         LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 -q pdebug --setattr=bank=lc"
 
 .poodle:
@@ -22,7 +21,6 @@
         - poodle
         - batch
     variables:
-        HWLOC_COMPONENTS: "x86"
         LLNL_SLURM_SCHEDULER_PARAMETERS: "--exclusive -N 1 -p pdebug"
 
 .tioga:
@@ -30,7 +28,6 @@
         - tioga
         - batch
     variables:
-        HWLOC_COMPONENTS: "x86"
         LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 -q pci"
 
 .quartz:
@@ -38,5 +35,4 @@
         - quartz
         - batch
     variables: 
-        HWLOC_COMPONENTS: "x86"
         LLNL_SLURM_SCHEDULER_PARAMETERS: "-N 1 -p pdebug"
