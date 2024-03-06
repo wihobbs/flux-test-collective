@@ -35,7 +35,7 @@ COMPILERS="${LCSCHEDCLUSTER}_COMPILERS"
 for mpi in ${!MPIS}; do
     for compiler in ${!COMPILERS}; do
         if [[ $mpi == "cray-mpich" ]]; then
-            EXTRA_FLUX_SUBMIT_OPTIONS="-o pmi=cray-pals" flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $compiler $mpi
+            EXTRA_FLUX_SUBMIT_OPTIONS="-o pmi=cray-pals" flux batch --exclusive -N2 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $compiler $mpi
         elif [[ $mpi == "openmpi"* ]]; then
             EXTRA_FLUX_SUBMIT_OPTIONS="-o pmi=pmix" flux batch -N2 -n4 --flags=waitable --output=kvs $MPI_TESTS_DIRECTORY/inner_script.sh $compiler $mpi
         else
