@@ -177,7 +177,7 @@ tioga-mpi-test:
         - .test-core-mpi
         - .tioga
     variables:
-        LLNL_FLUX_SCHEDULER_PARAMETERS: "-N 2 -q pci"
+        LLNL_FLUX_SCHEDULER_PARAMETERS: "-N 2 -q pdebug"
     stage: test
 
 quartz-core-test:
