@@ -11,6 +11,8 @@
 include:
   - local: '.gitlab/builds.gitlab-ci.yml'
   - local: '.gitlab/machines.gitlab-ci.yml'
+  - project: 'lc-templates/id_tokens'
+    file: 'id_tokens.yml'
 
 stages:
   - build
