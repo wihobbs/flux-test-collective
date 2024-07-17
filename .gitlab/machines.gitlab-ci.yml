@@ -30,9 +30,3 @@
     variables:
         LLNL_FLUX_SCHEDULER_PARAMETERS: "--exclusive -N 1 -q pci"
 
-.quartz:
-    tags:
-        - quartz
-        - batch
-    variables: 
-        LLNL_SLURM_SCHEDULER_PARAMETERS: "-N 1 -p pdebug"

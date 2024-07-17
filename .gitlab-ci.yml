@@ -153,12 +153,6 @@ tioga-core-test:
         - .tioga
     stage: test
 
-quartz-core-build:
-    extends: 
-        - .build-core
-        - .quartz
-    stage: build
-    
 tioga-coral2-test:
     needs: ["tioga-core-build"]
     extends:
@@ -180,13 +174,6 @@ tioga-mpi-test:
         - .tioga
     variables:
         LLNL_FLUX_SCHEDULER_PARAMETERS: "-N 2 -q pdebug"
-    stage: test
-
-quartz-core-test:
-    needs: ["quartz-core-build"]
-    extends: 
-        - .test-core
-        - .quartz
     stage: test
 
 corona-pmix-test:
